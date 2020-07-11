@@ -33,7 +33,7 @@ allTracks: List[Track] = []
 
 
 # Get playlists from toplists category.
-async def browseToplists() -> List[str]:
+async def handleTopLists():
   async with httpx.AsyncClient() as client:
     res = await client.get(
       "https://api.spotify.com/v1/browse/categories/toplists/playlists?limit=50",
@@ -44,11 +44,11 @@ async def browseToplists() -> List[str]:
       }
     )
     playlistIds = [i["id"] for i in res.json()["playlists"]["items"]]
-  return playlistIds
+  await asyncio.gather(*[handlePlaylist(playlist) for playlist in playlistIds])
 
 
 # Get tracks in playlist.
-async def playlistTracks(playlistId: str) -> List[Track]:
+async def handlePlaylist(playlistId: str) -> List[Track]:
   async with httpx.AsyncClient() as client:
     res = await client.get(
       f"https://api.spotify.com/v1/playlists/{playlistId}/tracks",
@@ -58,16 +58,12 @@ async def playlistTracks(playlistId: str) -> List[Track]:
         "authorization": "Bearer " + spotify.get_access_token(as_dict=False)
       }
     )
-    tracks = [i["track"] for i in res.json()["items"]]
-  return [ Track(track["id"], track["preview_url"], track["name"], track["artists"][0]["name"]) for track in tracks ]
+    trackData = [i["track"] for i in res.json()["items"]]
+  tracks = [ Track(track["id"], track["preview_url"], track["name"], track["artists"][0]["name"]) for track in trackData ]
+  await asyncio.gather(*[handleTrack(track) for track in tracks])
 
-# Scrape tracks from Spotify
-# and sort them into categories.
-async def prepareTracks():
-  playlistIds = await browseToplists()
-  for playlist in playlistIds:
-    tracks = await playlistTracks(playlist)
-    for track in tracks:
-      allTracks.append(track)
+async def handleTrack(track: Track):
+  allTracks.append(track)
 
-asyncio.run(prepareTracks())
+
+asyncio.run(handleTopLists())
