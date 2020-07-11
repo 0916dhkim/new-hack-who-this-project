@@ -1,4 +1,5 @@
 from config import config
+import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import asyncio
 import httpx
@@ -11,9 +12,10 @@ if config["spotifyClientId"] is None:
     raise Exception("Environment variable SPOTIFY_CLIENT_ID is required.")
 if config["spotifyClientSecret"] is None:
     raise Exception("Environment variable SPOTIFY_CLIENT_SECRET is required.")
-spotify = SpotifyClientCredentials(
+credentials = SpotifyClientCredentials(
     client_id=config["spotifyClientId"], client_secret=config["spotifyClientSecret"]
 )
+spotify = spotipy.Spotify(client_credentials_manager=credentials)
 
 
 class SpotifyTrack:
@@ -26,37 +28,58 @@ class SpotifyTrack:
         return f"<[{self.id}] {self.title} ; {self.artist}>"
 
 
+class SpotifyFeatures:
+    def __init__(
+        self,
+        key,
+        mode,
+        acousticness,
+        danceability,
+        energy,
+        instrumentalness,
+        liveness,
+        loudness,
+        speechiness,
+        valence,
+        tempo,
+    ):
+        self.key = key
+        self.mode = mode
+        self.acousticness = acousticness
+        self.danceability = danceability
+        self.energy = energy
+        self.instrumentalness = instrumentalness
+        self.liveness = liveness
+        self.loudness = loudness
+        self.speechiness = speechiness
+        self.valence = valence
+        self.tempo = tempo
+
+
+class Track:
+    def __init__(self, spotifyTrack, spotifyFeatures):
+        self.spotifyTrack = spotifyTrack
+        self.spotifyFeatures = spotifyFeatures
+
+    def __str__(self):
+        return f"<Track {self.spotifyTrack.id}>"
+
+
 # All tracks.
-allTracks: List[SpotifyTrack] = []
+allTracks: List[Track] = []
 
 
 # Get playlists from toplists category.
 async def handleTopLists():
-    async with httpx.AsyncClient() as client:
-        res = await client.get(
-            "https://api.spotify.com/v1/browse/categories/toplists/playlists?limit=50",
-            headers={
-                "accept": "application/json",
-                "content-type": "application/json",
-                "authorization": "Bearer " + spotify.get_access_token(as_dict=False),
-            },
-        )
-        playlistIds = [i["id"] for i in res.json()["playlists"]["items"]]
+    res = spotify.category_playlists("toplists", limit=1)
+    playlistIds = [i["id"] for i in res["playlists"]["items"]]
     await asyncio.gather(*[handlePlaylist(playlist) for playlist in playlistIds])
 
 
 # Get tracks in playlist.
 async def handlePlaylist(playlistId: str):
-    async with httpx.AsyncClient() as client:
-        res = await client.get(
-            f"https://api.spotify.com/v1/playlists/{playlistId}/tracks",
-            headers={
-                "accept": "application/json",
-                "content-type": "application/json",
-                "authorization": "Bearer " + spotify.get_access_token(as_dict=False),
-            },
-        )
-        spotifyTrackData = [i["track"] for i in res.json()["items"]]
+    res = spotify.playlist_tracks(playlistId)
+    spotifyTrackData = [i["track"] for i in res["items"]]
     spotifyTracks = [
         SpotifyTrack(track["id"], track["name"], track["artists"][0]["name"])
         for track in spotifyTrackData
@@ -65,8 +88,28 @@ async def handlePlaylist(playlistId: str):
 
 
 async def handleSpotifyTrack(spotifyTrack: SpotifyTrack):
-    allTracks.append(spotifyTrack)
-    print(spotifyTrack)
+    features = await getSpotifyFeatures(spotifyTrack.id)
+    track = Track(spotifyTrack, features)
+    print(track)
+    allTracks.append(track)
 
 
-asyncio.run(handleTopLists())
+async def getSpotifyFeatures(trackId: str):
+    [res] = spotify.audio_features([trackId])
+    return SpotifyFeatures(
+        res["key"],
+        res["mode"],
+        res["acousticness"],
+        res["danceability"],
+        res["energy"],
+        res["instrumentalness"],
+        res["liveness"],
+        res["loudness"],
+        res["speechiness"],
+        res["valence"],
+        res["tempo"],
+    )
+
+
+if __name__ == "__main__":
+    asyncio.run(handleTopLists())
