@@ -9,6 +9,7 @@ if __name__ == "__main__":
     add_commands()
     client.run(token)
 
+
 @client.event
 async def on_ready():
     print("Ready to start mentoring")

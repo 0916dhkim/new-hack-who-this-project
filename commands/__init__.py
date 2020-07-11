@@ -7,6 +7,4 @@ def add_commands():
     logging.info("Commands are added.")
 
 
-__all__ = [
-    "hello"
-]
+__all__ = ["hello"]

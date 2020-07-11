@@ -9,5 +9,5 @@ config = {
     "prefix": os.getenv("BOT_PREFIX"),
     "token": os.getenv("BOT_TOKEN"),
     "spotifyClientId": os.getenv("SPOTIFY_CLIENT_ID"),
-    "spotifyClientSecret": os.getenv("SPOTIFY_CLIENT_SECRET")
+    "spotifyClientSecret": os.getenv("SPOTIFY_CLIENT_SECRET"),
 }

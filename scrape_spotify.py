@@ -1,4 +1,5 @@
 from config import config
+import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import asyncio
 import httpx
@@ -8,24 +9,60 @@ import os
 
 # Use spotipy package for maanaging access tokens.
 if config["spotifyClientId"] is None:
-  raise Exception("Environment variable SPOTIFY_CLIENT_ID is required.")
+    raise Exception("Environment variable SPOTIFY_CLIENT_ID is required.")
 if config["spotifyClientSecret"] is None:
-  raise Exception("Environment variable SPOTIFY_CLIENT_SECRET is required.")
-spotify = SpotifyClientCredentials(
-  client_id=config["spotifyClientId"],
-  client_secret=config["spotifyClientSecret"]
+    raise Exception("Environment variable SPOTIFY_CLIENT_SECRET is required.")
+credentials = SpotifyClientCredentials(
+    client_id=config["spotifyClientId"], client_secret=config["spotifyClientSecret"]
 )
+spotify = spotipy.Spotify(client_credentials_manager=credentials)
+
+
+class SpotifyTrack:
+    def __init__(self, id, title, artist):
+        self.id = id
+        self.title = title
+        self.artist = artist
+
+    def __str__(self):
+        return f"<[{self.id}] {self.title} ; {self.artist}>"
+
+
+class SpotifyFeatures:
+    def __init__(
+        self,
+        key,
+        mode,
+        acousticness,
+        danceability,
+        energy,
+        instrumentalness,
+        liveness,
+        loudness,
+        speechiness,
+        valence,
+        tempo,
+    ):
+        self.key = key
+        self.mode = mode
+        self.acousticness = acousticness
+        self.danceability = danceability
+        self.energy = energy
+        self.instrumentalness = instrumentalness
+        self.liveness = liveness
+        self.loudness = loudness
+        self.speechiness = speechiness
+        self.valence = valence
+        self.tempo = tempo
 
 
 class Track:
-  def __init__(self, id, preview, title, artist):
-    self.id = id
-    self.preview = preview
-    self.title = title
-    self.artist = artist
+    def __init__(self, spotifyTrack, spotifyFeatures):
+        self.spotifyTrack = spotifyTrack
+        self.spotifyFeatures = spotifyFeatures
 
-  def __str__(self):
-    return f"<[{self.id}] {self.title} ; {self.artist}>"
+    def __str__(self):
+        return f"<Track {self.spotifyTrack.id}>"
 
 
 # All tracks.
@@ -33,41 +70,46 @@ allTracks: List[Track] = []
 
 
 # Get playlists from toplists category.
-async def browseToplists() -> List[str]:
-  async with httpx.AsyncClient() as client:
-    res = await client.get(
-      "https://api.spotify.com/v1/browse/categories/toplists/playlists?limit=50",
-      headers={
-        "accept": "application/json",
-        "content-type": "application/json",
-        "authorization": "Bearer " + spotify.get_access_token(as_dict=False)
-      }
-    )
-    playlistIds = [i["id"] for i in res.json()["playlists"]["items"]]
-  return playlistIds
+async def handleTopLists():
+    res = spotify.category_playlists("toplists", limit=1)
+    playlistIds = [i["id"] for i in res["playlists"]["items"]]
+    await asyncio.gather(*[handlePlaylist(playlist) for playlist in playlistIds])
 
 
 # Get tracks in playlist.
-async def playlistTracks(playlistId: str) -> List[Track]:
-  async with httpx.AsyncClient() as client:
-    res = await client.get(
-      f"https://api.spotify.com/v1/playlists/{playlistId}/tracks",
-      headers={
-        "accept": "application/json",
-        "content-type": "application/json",
-        "authorization": "Bearer " + spotify.get_access_token(as_dict=False)
-      }
+async def handlePlaylist(playlistId: str):
+    res = spotify.playlist_tracks(playlistId)
+    spotifyTrackData = [i["track"] for i in res["items"]]
+    spotifyTracks = [
+        SpotifyTrack(track["id"], track["name"], track["artists"][0]["name"])
+        for track in spotifyTrackData
+    ]
+    await asyncio.gather(*[handleSpotifyTrack(track) for track in spotifyTracks])
+
+
+async def handleSpotifyTrack(spotifyTrack: SpotifyTrack):
+    features = await getSpotifyFeatures(spotifyTrack.id)
+    track = Track(spotifyTrack, features)
+    print(track)
+    allTracks.append(track)
+
+
+async def getSpotifyFeatures(trackId: str):
+    [res] = spotify.audio_features([trackId])
+    return SpotifyFeatures(
+        res["key"],
+        res["mode"],
+        res["acousticness"],
+        res["danceability"],
+        res["energy"],
+        res["instrumentalness"],
+        res["liveness"],
+        res["loudness"],
+        res["speechiness"],
+        res["valence"],
+        res["tempo"],
     )
-    tracks = [i["track"] for i in res.json()["items"]]
-  return [ Track(track["id"], track["preview_url"], track["name"], track["artists"][0]["name"]) for track in tracks ]
 
-# Scrape tracks from Spotify
-# and sort them into categories.
-async def prepareTracks():
-  playlistIds = await browseToplists()
-  for playlist in playlistIds:
-    tracks = await playlistTracks(playlist)
-    for track in tracks:
-      allTracks.append(track)
 
-asyncio.run(prepareTracks())
+if __name__ == "__main__":
+    asyncio.run(handleTopLists())
