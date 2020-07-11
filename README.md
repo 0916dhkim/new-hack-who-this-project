@@ -55,3 +55,9 @@ async def foo(ctx: Context, *args: str):
 3. Implement `foo` function inside `commands/foo.py`
 
 4. Push changes to this GitHub repo.
+
+## Using the Jupyter Notebook 
+1. `jupyter notebook`
+2. In the browser window opened after above command, select the 'Data Labelling.ipynb' file
+3. Run all the cells in the notebook to see the result.
+
