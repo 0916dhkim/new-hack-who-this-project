@@ -6,6 +6,7 @@ import asyncio
 import httpx
 from typing import List
 import os
+import csv
 
 
 # Use spotipy package for maanaging access tokens.
@@ -129,3 +130,41 @@ def getLastFmTags(title: str, artist: str):
 
 if __name__ == "__main__":
     asyncio.run(handleTopLists())
+    with open("scraped.csv", "w", newline="", encoding="utf-8") as csvfile:
+        fieldnames = [
+            "spotify_id",
+            "title",
+            "artist",
+            "key",
+            "mode",
+            "acousticness",
+            "danceability",
+            "energy",
+            "instrumentalness",
+            "liveness",
+            "loudness",
+            "speechiness",
+            "valence",
+            "tempo",
+            "tags"
+        ]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_NONNUMERIC, lineterminator="\n")
+        writer.writeheader()
+        for track in allTracks:
+            writer.writerow({
+                "spotify_id": track.spotifyTrack.id,
+                "title": track.spotifyTrack.title,
+                "artist": track.spotifyTrack.artist,
+                "key": track.spotifyFeatures.key,
+                "mode": track.spotifyFeatures.mode,
+                "acousticness": track.spotifyFeatures.acousticness,
+                "danceability": track.spotifyFeatures.danceability,
+                "energy": track.spotifyFeatures.energy,
+                "instrumentalness": track.spotifyFeatures.instrumentalness,
+                "liveness": track.spotifyFeatures.liveness,
+                "loudness": track.spotifyFeatures.loudness,
+                "speechiness": track.spotifyFeatures.speechiness,
+                "valence": track.spotifyFeatures.valence,
+                "tempo": track.spotifyFeatures.tempo,
+                "tags": track.tags
+            })
