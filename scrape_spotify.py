@@ -1,6 +1,7 @@
 from config import config
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import pylast
 import asyncio
 import httpx
 from typing import List
@@ -12,10 +13,17 @@ if config["spotifyClientId"] is None:
     raise Exception("Environment variable SPOTIFY_CLIENT_ID is required.")
 if config["spotifyClientSecret"] is None:
     raise Exception("Environment variable SPOTIFY_CLIENT_SECRET is required.")
-credentials = SpotifyClientCredentials(
+if config["lastFmKey"] is None:
+    raise Exception("Environment varialbe LASTFM_API_KEY is required.")
+if config["lastFmSecret"] is None:
+    raise Exception("Environment varialbe LASTFM_API_SECRET is required.")
+spotifyCredentials = SpotifyClientCredentials(
     client_id=config["spotifyClientId"], client_secret=config["spotifyClientSecret"]
 )
-spotify = spotipy.Spotify(client_credentials_manager=credentials)
+spotify = spotipy.Spotify(client_credentials_manager=spotifyCredentials)
+lastfm = pylast.LastFMNetwork(
+    api_key=config["lastFmKey"], api_secret=config["lastFmSecret"]
+)
 
 
 class SpotifyTrack:
