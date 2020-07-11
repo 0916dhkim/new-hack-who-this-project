@@ -81,7 +81,7 @@ allTracks: List[Track] = []
 
 # Get playlists from toplists category.
 async def handleTopLists():
-    res = spotify.category_playlists("toplists", limit=1)
+    res = spotify.category_playlists("toplists", country="US", limit=50)
     playlistIds = [i["id"] for i in res["playlists"]["items"]]
     await asyncio.gather(*[handlePlaylist(playlist) for playlist in playlistIds])
 
@@ -100,6 +100,8 @@ async def handlePlaylist(playlistId: str):
 async def handleSpotifyTrack(spotifyTrack: SpotifyTrack):
     features = await getSpotifyFeatures(spotifyTrack.id)
     tags = getLastFmTags(spotifyTrack.title, spotifyTrack.artist)
+    if features is None:
+        return
     track = Track(spotifyTrack, features, tags)
     print(track)
     allTracks.append(track)
@@ -107,6 +109,8 @@ async def handleSpotifyTrack(spotifyTrack: SpotifyTrack):
 
 async def getSpotifyFeatures(trackId: str):
     [res] = spotify.audio_features([trackId])
+    if res is None:
+        return None
     return SpotifyFeatures(
         res["key"],
         res["mode"],
@@ -123,9 +127,12 @@ async def getSpotifyFeatures(trackId: str):
 
 
 def getLastFmTags(title: str, artist: str):
-    return list(
-        map(lambda x: x.item.name, lastfm.get_track(artist, title).get_top_tags())
-    )
+    try:
+        return list(
+            map(lambda x: x.item.name, lastfm.get_track(artist, title).get_top_tags())
+        )
+    except:
+        return []
 
 
 if __name__ == "__main__":
