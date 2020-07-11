@@ -1,3 +1,9 @@
+# Config file for tutorbot
+config.json
+
+# Mac custom attributes
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
