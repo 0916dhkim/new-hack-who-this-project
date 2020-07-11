@@ -1,6 +1,31 @@
 # New Hack, Who This : Discord Bot
 Music AI
 
+## How to Run
+
+1. Create a virtual environment & install dependencies.
+```bash
+python -m venv venv
+
+# Windows
+venv/Scripts/activate
+# MacOS/Linux
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+2. Put required environment variables in `.env` file.
+```
+BOT_PREFIX="!"
+BOT_TOKEN="XXXXXXXXXXXXXX"
+```
+
+3. Start discord bot server.
+```bash
+python __main__.py
+```
+
 ## How to Create a New Command
 Let's assume the name of your new command is **foo**.
 1. Create `commands/foo.py` file and copy the following into the file.
