@@ -81,7 +81,7 @@ allTracks: List[Track] = []
 
 # Get playlists from toplists category.
 async def handleTopLists():
-    res = spotify.category_playlists("toplists", limit=1)
+    res = spotify.category_playlists("toplists", country="US", limit=1)
     playlistIds = [i["id"] for i in res["playlists"]["items"]]
     await asyncio.gather(*[handlePlaylist(playlist) for playlist in playlistIds])
 
