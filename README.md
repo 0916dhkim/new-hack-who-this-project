@@ -19,6 +19,8 @@ pip install -r requirements.txt
 ```
 BOT_PREFIX="!"
 BOT_TOKEN="XXXXXXXXXXXXXX"
+SPOTIFY_CLIENT_ID="XXXXXXXXXXXXXX"
+SPOTIFY_CLIENT_SECRET="XXXXXXXXXXXXXX"
 ```
 
 3. Start discord bot server.
