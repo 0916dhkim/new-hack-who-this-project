@@ -17,10 +17,9 @@ spotify = SpotifyClientCredentials(
 )
 
 
-class Track:
-  def __init__(self, id, preview, title, artist):
+class SpotifyTrack:
+  def __init__(self, id, title, artist):
     self.id = id
-    self.preview = preview
     self.title = title
     self.artist = artist
 
@@ -29,7 +28,7 @@ class Track:
 
 
 # All tracks.
-allTracks: List[Track] = []
+allTracks: List[SpotifyTrack] = []
 
 
 # Get playlists from toplists category.
@@ -48,7 +47,7 @@ async def handleTopLists():
 
 
 # Get tracks in playlist.
-async def handlePlaylist(playlistId: str) -> List[Track]:
+async def handlePlaylist(playlistId: str):
   async with httpx.AsyncClient() as client:
     res = await client.get(
       f"https://api.spotify.com/v1/playlists/{playlistId}/tracks",
@@ -58,12 +57,14 @@ async def handlePlaylist(playlistId: str) -> List[Track]:
         "authorization": "Bearer " + spotify.get_access_token(as_dict=False)
       }
     )
-    trackData = [i["track"] for i in res.json()["items"]]
-  tracks = [ Track(track["id"], track["preview_url"], track["name"], track["artists"][0]["name"]) for track in trackData ]
-  await asyncio.gather(*[handleTrack(track) for track in tracks])
+    spotifyTrackData = [i["track"] for i in res.json()["items"]]
+  spotifyTracks = [ SpotifyTrack(track["id"], track["name"], track["artists"][0]["name"]) for track in spotifyTrackData ]
+  await asyncio.gather(*[handleSpotifyTrack(track) for track in spotifyTracks])
 
-async def handleTrack(track: Track):
-  allTracks.append(track)
+
+async def handleSpotifyTrack(spotifyTrack: SpotifyTrack):
+  allTracks.append(spotifyTrack)
+  print(spotifyTrack)
 
 
 asyncio.run(handleTopLists())
