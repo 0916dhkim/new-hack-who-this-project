@@ -30,6 +30,11 @@ LASTFM_API_SECRET="XXXXXXXXXXXXXX"
 python __main__.py
 ```
 
+## How to Scrape Music Metadata
+```bash
+python scrape.py
+```
+
 ## How to Create a New Command
 Let's assume the name of your new command is **foo**.
 1. Create `commands/foo.py` file and copy the following into the file.
