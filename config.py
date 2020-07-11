@@ -10,4 +10,6 @@ config = {
     "token": os.getenv("BOT_TOKEN"),
     "spotifyClientId": os.getenv("SPOTIFY_CLIENT_ID"),
     "spotifyClientSecret": os.getenv("SPOTIFY_CLIENT_SECRET"),
+    "lastFmKey": os.getenv("LASTFM_API_KEY"),
+    "lastFmSecret": os.getenv("LASTFM_API_SECRET"),
 }

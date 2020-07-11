@@ -21,11 +21,18 @@ BOT_PREFIX="!"
 BOT_TOKEN="XXXXXXXXXXXXXX"
 SPOTIFY_CLIENT_ID="XXXXXXXXXXXXXX"
 SPOTIFY_CLIENT_SECRET="XXXXXXXXXXXXXX"
+LASTFM_API_KEY="XXXXXXXXXXXXXX"
+LASTFM_API_SECRET="XXXXXXXXXXXXXX"
 ```
 
 3. Start discord bot server.
 ```bash
 python __main__.py
+```
+
+## How to Scrape Music Metadata
+```bash
+python scrape.py
 ```
 
 ## How to Create a New Command

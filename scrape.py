@@ -1,6 +1,7 @@
 from config import config
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import pylast
 import asyncio
 import httpx
 from typing import List
@@ -12,10 +13,17 @@ if config["spotifyClientId"] is None:
     raise Exception("Environment variable SPOTIFY_CLIENT_ID is required.")
 if config["spotifyClientSecret"] is None:
     raise Exception("Environment variable SPOTIFY_CLIENT_SECRET is required.")
-credentials = SpotifyClientCredentials(
+if config["lastFmKey"] is None:
+    raise Exception("Environment varialbe LASTFM_API_KEY is required.")
+if config["lastFmSecret"] is None:
+    raise Exception("Environment varialbe LASTFM_API_SECRET is required.")
+spotifyCredentials = SpotifyClientCredentials(
     client_id=config["spotifyClientId"], client_secret=config["spotifyClientSecret"]
 )
-spotify = spotipy.Spotify(client_credentials_manager=credentials)
+spotify = spotipy.Spotify(client_credentials_manager=spotifyCredentials)
+lastfm = pylast.LastFMNetwork(
+    api_key=config["lastFmKey"], api_secret=config["lastFmSecret"]
+)
 
 
 class SpotifyTrack:
@@ -57,12 +65,13 @@ class SpotifyFeatures:
 
 
 class Track:
-    def __init__(self, spotifyTrack, spotifyFeatures):
+    def __init__(self, spotifyTrack, spotifyFeatures, tags):
         self.spotifyTrack = spotifyTrack
         self.spotifyFeatures = spotifyFeatures
+        self.tags = tags
 
     def __str__(self):
-        return f"<Track {self.spotifyTrack.id}>"
+        return f"<Track | {self.spotifyTrack.title} | {self.spotifyTrack.artist} | {self.tags}>"
 
 
 # All tracks.
@@ -89,7 +98,8 @@ async def handlePlaylist(playlistId: str):
 
 async def handleSpotifyTrack(spotifyTrack: SpotifyTrack):
     features = await getSpotifyFeatures(spotifyTrack.id)
-    track = Track(spotifyTrack, features)
+    tags = getLastFmTags(spotifyTrack.title, spotifyTrack.artist)
+    track = Track(spotifyTrack, features, tags)
     print(track)
     allTracks.append(track)
 
@@ -108,6 +118,12 @@ async def getSpotifyFeatures(trackId: str):
         res["speechiness"],
         res["valence"],
         res["tempo"],
+    )
+
+
+def getLastFmTags(title: str, artist: str):
+    return list(
+        map(lambda x: x.item.name, lastfm.get_track(artist, title).get_top_tags())
     )
 
 
