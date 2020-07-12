@@ -27,10 +27,9 @@ body{
     padding:10px;
     text-decoration: none;
     border-radius: 5px;
-    font-weight: bold;
     margin:5px;
     transition:all 0.1s linear;
-    font-weight: 300;
+    font-weight: 500;
 }
 .button:hover{
     filter:drop-shadow(5px 5px 0px black);
