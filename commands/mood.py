@@ -25,7 +25,8 @@ async def mood(ctx: Context, *args: str):
     try:
         message = "".join(
             [
-                "Please copy-paste the following text into your Spotify client.",
+                "Please copy-paste the following text ",
+                "into your Spotify client.",
                 "```\n",
                 playlistToStr(random.sample(categorizedTrackIds[args[0]], 20)),
                 "\n```",
