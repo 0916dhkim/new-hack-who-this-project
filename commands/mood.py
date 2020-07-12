@@ -4,12 +4,29 @@ import csv
 import random
 from typing import Dict, Set
 
+
+class TrackInfo:
+    def __init__(self, title: str, artist: str):
+        self.title = title
+        self.artist = artist
+
+    def getSearchQuery(self):
+        return f"{self.title} {self.artist}"
+
+
 categorizedTrackIds: Dict[str, Set[str]] = dict()
+trackInfoDict: Dict[str, TrackInfo] = dict()
 
 # Read labeled csv file.
 with open("labelled_scraped.csv", encoding="utf-8", newline="") as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
+        # Load track info.
+        trackInfoDict[row["spotify_id"]] = TrackInfo(
+            row["title"], row["artist"]
+        )
+
+        # Categorize.
         if row["label"] in categorizedTrackIds:
             categorizedTrackIds[row["label"]].add(row["spotify_id"])
         else:
