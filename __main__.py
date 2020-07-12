@@ -6,7 +6,7 @@ import math
 import random
 import csv
 from config import config
-from typing import Dict, Set
+from typing import Dict, Set, List
 
 import discord
 import youtube_dl
@@ -592,6 +592,47 @@ class Music(commands.Cog):
                 await ctx.voice_state.songs.put(song)
                 await ctx.send("Enqueued {}".format(str(source)))
 
+    @commands.command(name="autoplay")
+    async def _autoplay(self, ctx: commands.Context, *, mood: str):
+        """Plays a list of songs of given mood.
+
+        Do the same thing as play command, except in loop.
+        """
+        # Join if not joined.
+        if not ctx.voice_state.voice:
+            await ctx.invoke(self._join)
+
+        # Get search queries.
+        try:
+            trackIds: List[str] = random.sample(categorizedTrackIds[mood], 10)
+            searchQueries: List[str] = list(
+                map(
+                    lambda trackId: trackInfoDict[trackId].getSearchQuery(),
+                    trackIds
+                )
+            )
+        except Exception as e:
+            print(e)
+            await ctx.message.channel.send("No tracks.")
+            return
+        # Enqueue songs.
+        async with ctx.typing():
+            for search in searchQueries:
+                try:
+                    source = await YTDLSource.create_source(
+                        ctx, search, loop=self.bot.loop
+                    )
+                except YTDLError as e:
+                    await ctx.send(
+                        "An error occurred while processing this request: {}".format(
+                            str(e)
+                        )
+                    )
+                else:
+                    song = Song(source)
+
+                    await ctx.voice_state.songs.put(song)
+                    await ctx.send("Enqueued {}".format(str(source)))
 
     @commands.command(name="mood")
     async def mood(self, ctx: commands.Context, *args: str):
