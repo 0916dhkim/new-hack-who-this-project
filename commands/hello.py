@@ -1,7 +1,4 @@
 from discord_client import client
-from discord.ext.commands import Context
-from discord import utils
-import random
 
 
 # Command to add roles to the author.
