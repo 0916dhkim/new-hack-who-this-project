@@ -3,9 +3,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pylast
 import asyncio
-import httpx
 from typing import List
-import os
 import csv
 
 
@@ -19,7 +17,8 @@ if config["lastFmKey"] is None:
 if config["lastFmSecret"] is None:
     raise Exception("Environment varialbe LASTFM_API_SECRET is required.")
 spotifyCredentials = SpotifyClientCredentials(
-    client_id=config["spotifyClientId"], client_secret=config["spotifyClientSecret"]
+    client_id=config["spotifyClientId"],
+    client_secret=config["spotifyClientSecret"],
 )
 spotify = spotipy.Spotify(client_credentials_manager=spotifyCredentials)
 lastfm = pylast.LastFMNetwork(
@@ -72,7 +71,10 @@ class Track:
         self.tags = tags
 
     def __str__(self):
-        return f"<Track | {self.spotifyTrack.title} | {self.spotifyTrack.artist} | {self.tags}>"
+        return (
+            f"<Track | {self.spotifyTrack.title} | "
+            f"{self.spotifyTrack.artist} | {self.tags}>"
+        )
 
 
 # All tracks.
@@ -83,7 +85,9 @@ allTracks: List[Track] = []
 async def handleTopLists():
     res = spotify.category_playlists("toplists", country="US", limit=50)
     playlistIds = [i["id"] for i in res["playlists"]["items"]]
-    await asyncio.gather(*[handlePlaylist(playlist) for playlist in playlistIds])
+    await asyncio.gather(
+        *[handlePlaylist(playlist) for playlist in playlistIds]
+    )
 
 
 # Get tracks in playlist.
@@ -94,7 +98,9 @@ async def handlePlaylist(playlistId: str):
         SpotifyTrack(track["id"], track["name"], track["artists"][0]["name"])
         for track in spotifyTrackData
     ]
-    await asyncio.gather(*[handleSpotifyTrack(track) for track in spotifyTracks])
+    await asyncio.gather(
+        *[handleSpotifyTrack(track) for track in spotifyTracks]
+    )
 
 
 async def handleSpotifyTrack(spotifyTrack: SpotifyTrack):
@@ -129,9 +135,12 @@ async def getSpotifyFeatures(trackId: str):
 def getLastFmTags(title: str, artist: str):
     try:
         return list(
-            map(lambda x: x.item.name, lastfm.get_track(artist, title).get_top_tags())
+            map(
+                lambda x: x.item.name,
+                lastfm.get_track(artist, title).get_top_tags(),
+            )
         )
-    except:
+    except Exception:
         return []
 
 
@@ -153,25 +162,32 @@ if __name__ == "__main__":
             "speechiness",
             "valence",
             "tempo",
-            "tags"
+            "tags",
         ]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_NONNUMERIC, lineterminator="\n")
+        writer = csv.DictWriter(
+            csvfile,
+            fieldnames=fieldnames,
+            quoting=csv.QUOTE_NONNUMERIC,
+            lineterminator="\n",
+        )
         writer.writeheader()
         for track in allTracks:
-            writer.writerow({
-                "spotify_id": track.spotifyTrack.id,
-                "title": track.spotifyTrack.title,
-                "artist": track.spotifyTrack.artist,
-                "key": track.spotifyFeatures.key,
-                "mode": track.spotifyFeatures.mode,
-                "acousticness": track.spotifyFeatures.acousticness,
-                "danceability": track.spotifyFeatures.danceability,
-                "energy": track.spotifyFeatures.energy,
-                "instrumentalness": track.spotifyFeatures.instrumentalness,
-                "liveness": track.spotifyFeatures.liveness,
-                "loudness": track.spotifyFeatures.loudness,
-                "speechiness": track.spotifyFeatures.speechiness,
-                "valence": track.spotifyFeatures.valence,
-                "tempo": track.spotifyFeatures.tempo,
-                "tags": track.tags
-            })
+            writer.writerow(
+                {
+                    "spotify_id": track.spotifyTrack.id,
+                    "title": track.spotifyTrack.title,
+                    "artist": track.spotifyTrack.artist,
+                    "key": track.spotifyFeatures.key,
+                    "mode": track.spotifyFeatures.mode,
+                    "acousticness": track.spotifyFeatures.acousticness,
+                    "danceability": track.spotifyFeatures.danceability,
+                    "energy": track.spotifyFeatures.energy,
+                    "instrumentalness": track.spotifyFeatures.instrumentalness,
+                    "liveness": track.spotifyFeatures.liveness,
+                    "loudness": track.spotifyFeatures.loudness,
+                    "speechiness": track.spotifyFeatures.speechiness,
+                    "valence": track.spotifyFeatures.valence,
+                    "tempo": track.spotifyFeatures.tempo,
+                    "tags": track.tags,
+                }
+            )
