@@ -23,9 +23,15 @@ def playlistToStr(spotifyIds: Set[str]) -> str:
 @client.command()
 async def mood(ctx: Context, *args: str):
     try:
-        await ctx.message.channel.send(
-            playlistToStr(random.sample(categorizedTrackIds[args[0]], 20))
+        message = "".join(
+            [
+                "Please copy-paste the following text into your Spotify client.",
+                "```\n",
+                playlistToStr(random.sample(categorizedTrackIds[args[0]], 20)),
+                "\n```",
+            ]
         )
+        await ctx.message.channel.send(message)
     except Exception as e:
         print(e)
         await ctx.message.channel.send("No tracks.")
