@@ -636,6 +636,9 @@ class Music(commands.Cog):
 
     @commands.command(name="mood")
     async def mood(self, ctx: commands.Context, *args: str):
+        """Generates a spotify playlist personalized to your current mood!
+
+        """
         try:
             message = "".join(
                 [
@@ -651,8 +654,11 @@ class Music(commands.Cog):
             print(e)
             await ctx.message.channel.send("No tracks.")
 
-    @commands.command(name="hello")
+    @commands.command(name="hello")   
     async def hello(self, ctx: commands.Context):
+        """Greetings from Moodsic bot!
+        
+        """
         await ctx.send("Hi!")
 
 
@@ -671,7 +677,7 @@ class Music(commands.Cog):
                 )
 
 
-bot = commands.Bot("!", description="Yet another music bot.")
+bot = commands.Bot("!", description="Create your own mood based Playlists!")
 bot.add_cog(Music(bot))
 
 
