@@ -55,8 +55,8 @@ pyrsistent==0.16.0
 python-dateutil==2.8.1
 python-dotenv==0.14.0
 pytz==2020.1
-pywin32==228
-pywinpty==0.5.7
+# pywin32==228
+# pywinpty==0.5.7
 pyzmq==19.0.1
 qtconsole==4.7.5
 QtPy==1.9.0
@@ -81,3 +81,5 @@ websockets==8.1
 widgetsnbextension==3.5.1
 yarl==1.4.2
 zipp==3.1.0
+git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]
+youtube-dl>=2018.1.14
