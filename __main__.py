@@ -1,4 +1,3 @@
-
 import asyncio
 import functools
 import itertools
@@ -52,6 +51,11 @@ with open("labelled_scraped.csv", encoding="utf-8", newline="") as csvfile:
         else:
             categorizedTrackIds[row["label"]] = set([row["spotify_id"]])
 
+for category in categorizedTrackIds:
+    print(
+        f"{category} category has {len(categorizedTrackIds[category])} tracks."
+    )
+
 
 def playlistToStr(spotifyIds: Set[str]) -> str:
     return "\n".join(map(lambda x: f"spotify:track:{x}", spotifyIds))
@@ -87,7 +91,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         source: discord.FFmpegPCMAudio,
         *,
         data: dict,
-        volume: float = 0.5
+        volume: float = 0.5,
     ):
         super().__init__(source, volume)
 
@@ -119,7 +123,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         ctx: commands.Context,
         search: str,
         *,
-        loop: asyncio.BaseEventLoop = None
+        loop: asyncio.BaseEventLoop = None,
     ):
         loop = loop or asyncio.get_event_loop()
 
@@ -608,7 +612,7 @@ class Music(commands.Cog):
             searchQueries: List[str] = list(
                 map(
                     lambda trackId: trackInfoDict[trackId].getSearchQuery(),
-                    trackIds
+                    trackIds,
                 )
             )
         except Exception as e:
@@ -645,7 +649,9 @@ class Music(commands.Cog):
                     "Please copy-paste the following text ",
                     "into your Spotify client.",
                     "```\n",
-                    playlistToStr(random.sample(categorizedTrackIds[args[0]], 20)),
+                    playlistToStr(
+                        random.sample(categorizedTrackIds[args[0]], 20)
+                    ),
                     "\n```",
                 ]
             )
@@ -654,13 +660,12 @@ class Music(commands.Cog):
             print(e)
             await ctx.message.channel.send("No tracks.")
 
-    @commands.command(name="hello")   
+    @commands.command(name="hello")
     async def hello(self, ctx: commands.Context):
         """Greetings from Moodsic bot!
         
         """
         await ctx.send("Hi!")
-
 
     @_join.before_invoke
     @_play.before_invoke
