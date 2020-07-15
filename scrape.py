@@ -82,8 +82,7 @@ allTracks: Set[Track] = set()
 
 # Get categories.
 async def getCategories():
-    res = spotify.categories(country="US", limit=10)
-    categoryIds = [i["id"] for i in res["categories"]["items"]]
+    categoryIds = ["mood", "pop"]
     print(f"Scraping categories : {categoryIds}")
     await asyncio.gather(
         *[handleCategory(categoryId) for categoryId in categoryIds]
@@ -92,7 +91,7 @@ async def getCategories():
 
 # Get playlists from toplists category.
 async def handleCategory(categoryId: str):
-    res = spotify.category_playlists(categoryId, country="US", limit=10)
+    res = spotify.category_playlists(categoryId, country="US", limit=50)
     playlistIds = [i["id"] for i in res["playlists"]["items"]]
     await asyncio.gather(
         *[handlePlaylist(playlist) for playlist in playlistIds]
